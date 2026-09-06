@@ -1,0 +1,106 @@
+@host = http://localhost:5086
+@base = {{host}}/api/medicity/distribuida
+
+### Estado y consulta general
+GET {{base}}/health
+
+###
+GET {{base}}/resumen
+
+### Catalogos para los formularios Flutter
+GET {{base}}/catalogos/ciudades
+
+###
+GET {{base}}/catalogos/pacientes
+
+###
+GET {{base}}/catalogos/especialidades
+
+### CRUD de doctores
+GET {{base}}/doctores
+
+###
+GET {{base}}/doctores/1
+
+###
+POST {{base}}/doctores
+Content-Type: application/json
+
+{
+  "nombre": "LUIS",
+  "idEspecialidad": 1,
+  "idCiudad": 1
+}
+
+###
+PUT {{base}}/doctores/1
+Content-Type: application/json
+
+{
+  "nombre": "Doctor Juan",
+  "idEspecialidad": 1,
+  "idCiudad": 1
+}
+
+###
+DELETE {{base}}/doctores/999999
+
+### CRUD de citas
+GET {{base}}/citas
+
+###
+GET {{base}}/citas/1
+
+###
+POST {{base}}/citas
+Content-Type: application/json
+
+{
+  "idPaciente": 1,
+  "idDoctor": 1,
+  "fechaHora": "2026-09-20T10:00:00"
+}
+
+###
+PUT {{base}}/citas/2
+Content-Type: application/json
+
+{
+  "idPaciente": 2,
+  "idDoctor": 1,
+  "fechaHora": "2026-09-10T15:06:42.393"
+}
+
+###
+DELETE {{base}}/citas/999999
+
+### CRUD de diagnosticos
+GET {{base}}/diagnosticos
+
+###
+GET {{base}}/diagnosticos/1
+
+###
+POST {{base}}/diagnosticos
+Content-Type: application/json
+
+{
+  "idCita": 2,
+  "nombre": "GRIPE",
+  "descripcion": "PACIENTE PRESENTA SINTOMAS DE GRIPE",
+  "tratamiento": "REPOSO Y MEDICACION"
+}
+
+###
+PUT {{base}}/diagnosticos/1
+Content-Type: application/json
+
+{
+  "idCita": 1,
+  "nombre": "CITA 1",
+  "descripcion": "PACIENTE JOVEN",
+  "tratamiento": "REPOSO"
+}
+
+###
+DELETE {{base}}/diagnosticos/999999
