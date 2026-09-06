@@ -1,4 +1,4 @@
-@host = http://<IP_TAILSCALE_BACKEND>:5086
+@host = http://100.99.13.87:5086
 @base = {{host}}/api/medicity/distribuida
 
 ### 1. Vista general distribuida

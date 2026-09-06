@@ -9,7 +9,7 @@ Flutter lo consuma mediante la IP Tailscale de la máquina del backend.
 ```text
 Flutter
    |
-   | http://<IP_TAILSCALE_BACKEND>:5086
+   | http://100.99.13.87:5086
    v
 Backend ASP.NET Core
    |
@@ -32,6 +32,14 @@ Datos confirmados del Sitio B:
 - Base de datos: `MEDICITY_B`.
 - IP Tailscale: `100.87.218.93`.
 - Puerto SQL Server: `1441`.
+
+Datos confirmados del Sitio A y backend:
+
+- Servidor SQL: `ANTHONY\SITIO_A`.
+- Base de datos: `MEDICITY_A`.
+- IP Tailscale: `100.99.13.87`.
+- Puerto SQL Server: `1440`.
+- Puerto del backend: `5086`.
 
 ## Scripts SQL y orden de ejecución
 
@@ -70,7 +78,7 @@ faltaba la sentencia `INSERT INTO DOCTOR_SB`; aquí ya está corregido.
 Ruta base:
 
 ```text
-http://<IP_TAILSCALE_BACKEND>:5086/api/medicity/distribuida
+http://100.99.13.87:5086/api/medicity/distribuida
 ```
 
 | # | Método | Ruta | Objeto SQL |
@@ -103,7 +111,7 @@ dotnet run --launch-profile http
 Desde Flutter o desde otra máquina del mismo Tailnet:
 
 ```text
-http://<IP_TAILSCALE_BACKEND>:5086/swagger
+http://100.99.13.87:5086/swagger
 ```
 
 No debe usarse `localhost` en Flutter, porque `localhost` sería el teléfono o
