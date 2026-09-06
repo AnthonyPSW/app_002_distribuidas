@@ -1,10 +1,12 @@
 /*
     EJECUTAR EN LA MAQUINA DEL SITIO A.
 
-    Reemplace:
-      <IP_TAILSCALE_SITIO_B> por la IP 100.x.x.x de la maquina Sitio B.
-      1433 por el puerto TCP fijo de la instancia SITIO_AD_B, si es diferente.
-      <CONTRASENA_SA_SITIO_B> por la clave real de sa en Sitio B.
+    Servidor remoto confirmado:
+      Maquina/instancia: XABI\SITIOB
+      IP Tailscale: 100.87.218.93
+      Puerto TCP: 1441
+
+    Reemplace <CONTRASENA_SA_SITIO_B> por la clave real de sa en Sitio B.
 
     No use localhost: Sitio B esta en otra maquina de la red Tailscale.
 */
@@ -18,7 +20,7 @@ BEGIN
         @server = N'LS_SITIO_B',
         @srvproduct = N'',
         @provider = N'SQLNCLI',
-        @datasrc = N'<IP_TAILSCALE_SITIO_B>,1433',
+        @datasrc = N'100.87.218.93,1441',
         @provstr = N'encrypt=yes;trustservercertificate=yes';
 
     EXEC master.dbo.sp_addlinkedsrvlogin

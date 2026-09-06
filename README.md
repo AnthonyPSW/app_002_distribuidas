@@ -13,18 +13,25 @@ Flutter
    v
 Backend ASP.NET Core
    |
-   | SQL por Tailscale
+   | SQL local: localhost:1440
    v
 SITIO_AD_A / MEDICITY_A
    |
-   | LS_SITIO_B por Tailscale
+   | LS_SITIO_B: 100.87.218.93:1441 por Tailscale
    v
-SITIO_AD_B / MEDICITY_B
+XABI\SITIOB / MEDICITY_B
 ```
 
 Sitio B también tiene `LS_SITIO_A` para comprobar la conexión inversa. En los
 Linked Servers se usa la IP `100.x.x.x` y un puerto TCP fijo; no se usa
 `localhost` porque cada sitio está en una máquina diferente.
+
+Datos confirmados del Sitio B:
+
+- Servidor SQL: `XABI\SITIOB`.
+- Base de datos: `MEDICITY_B`.
+- IP Tailscale: `100.87.218.93`.
+- Puerto SQL Server: `1441`.
 
 ## Scripts SQL y orden de ejecución
 
@@ -82,11 +89,12 @@ pueden probar desde Swagger.
 ## Configurar y ejecutar el backend
 
 El backend escucha en todas las interfaces (`0.0.0.0:5086`), incluida
-Tailscale. Configure la conexión hacia la IP Tailscale del Sitio A sin guardar
-la contraseña en Git:
+Tailscale. Como el backend y Sitio A se ejecutan en esta misma computadora, la
+conexión SQL se realiza localmente por el puerto `1440`. Configure la contraseña
+sin guardarla en Git:
 
 ```powershell
-$env:ConnectionStrings__testConnection = "Server=<IP_TAILSCALE_SITIO_A>,1433;Database=MEDICITY_A;User Id=sa;Password=<CONTRASENA>;Encrypt=False;TrustServerCertificate=True;"
+$env:ConnectionStrings__testConnection = "Server=localhost,1440;Database=MEDICITY_A;User Id=sa;Password=<CONTRASENA>;Encrypt=False;TrustServerCertificate=True;"
 cd backend
 dotnet restore
 dotnet run --launch-profile http
