@@ -88,20 +88,25 @@ del Sitio B utilizan nombres de cuatro partes, por ejemplo:
 
 ```text
 app_002_distribuidas/
-├── backend/
-│   ├── Controllers/MedicityController.cs
-│   ├── Data/AppDbContext.cs
-│   ├── DTO/
-│   ├── Views/
-│   ├── app_02.csproj
-│   ├── app_02.http
-│   ├── appsettings.json
-│   └── Program.cs
+├── app_02.slnx
+├── app_02.csproj
+├── Program.cs
+├── appsettings.json
+├── app_02.http
+├── Controllers/MedicityController.cs
+├── Data/AppDbContext.cs
+├── DTO/
+├── Views/
+├── Properties/
 └── database/
     ├── 01_SITIO_A_LINKED_SERVER.sql
     ├── 02_SITIO_B_LINKED_SERVER.sql
     └── 03_OBJETOS_7_ENDPOINTS.sql
 ```
+
+Después de clonar el repositorio, abra `app_02.slnx` para cargar directamente
+la solución completa en Visual Studio 2026. No es necesario buscar el proyecto
+dentro de otra subcarpeta.
 
 ## 5. Valores que se deben cambiar
 
@@ -115,8 +120,8 @@ contraseña.
 | IP o puerto de Sitio A | `database/02_SITIO_B_LINKED_SERVER.sql` | `@datasrc` |
 | Contraseña de Sitio A | `database/02_SITIO_B_LINKED_SERVER.sql` | `<CONTRASENA_SA_SITIO_A>` |
 | Puerto local de SQL A | Variable de entorno del backend | `Server=localhost,PUERTO` |
-| IP o puerto del backend | `backend/app_02.http` | Variable `@host` |
-| Puerto donde escucha la API | `backend/appsettings.json` | Propiedad `Urls` |
+| IP o puerto del backend | `app_02.http` | Variable `@host` |
+| Puerto donde escucha la API | `appsettings.json` | Propiedad `Urls` |
 | IP usada por Flutter | Archivo de configuración de Flutter | `baseUrl` |
 
 ### Valores actuales de los dos Linked Servers
@@ -280,10 +285,9 @@ La contraseña no debe subirse a GitHub. Configure la conexión solamente en la
 terminal desde la cual iniciará la API:
 
 ```powershell
-cd backend
 $env:ConnectionStrings__testConnection = "Server=localhost,1440;Database=MEDICITY_A;User Id=sa;Password=SU_CONTRASENA;Encrypt=False;TrustServerCertificate=True;"
 dotnet restore
-dotnet run --launch-profile http
+dotnet run --project app_02.csproj --launch-profile http
 ```
 
 La consola debe mostrar:
@@ -301,9 +305,9 @@ Direcciones de prueba:
 El backend escucha en `0.0.0.0`, por lo que acepta conexiones desde localhost,
 la red local y Tailscale. Si cambia el puerto `5086`, actualice estos archivos:
 
-1. `backend/appsettings.json`.
-2. `backend/Properties/launchSettings.json`.
-3. `backend/app_02.http`.
+1. `appsettings.json`.
+2. `Properties/launchSettings.json`.
+3. `app_02.http`.
 4. La constante `baseUrl` de Flutter.
 
 ## 10. Los siete endpoints
@@ -324,7 +328,22 @@ http://100.99.13.87:5086/api/medicity/distribuida
 | 6 | POST | `/procesos/diagnosticos/crear` | `sp_InsertarDiagnostico` |
 | 7 | PUT | `/procesos/diagnosticos/{id}/actualizar` | `sp_ActualizarDiagnostico` |
 
-Los siete ejemplos completos están en `backend/app_02.http`.
+### Identificador en los procesos UPDATE
+
+Los dos endpoints de actualización reciben el identificador del registro en
+la URL, mediante `{id}`. No se repite el ID dentro del JSON:
+
+```text
+PUT /api/medicity/distribuida/procesos/citas/1/actualizar
+PUT /api/medicity/distribuida/procesos/diagnosticos/1/actualizar
+```
+
+El controlador envía ese valor como `@ID` al procedimiento almacenado. Tanto
+`sp_ActualizarCitaMedica` como `sp_ActualizarDiagnostico` comprueban primero
+que el registro exista y actualizan únicamente la fila que cumple
+`WHERE ID = @ID`.
+
+Los siete ejemplos completos están en `app_02.http`.
 
 ### Crear doctor
 

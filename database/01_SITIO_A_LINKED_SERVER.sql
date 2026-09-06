@@ -28,7 +28,7 @@ BEGIN
         @useself = N'false',
         @locallogin = NULL,
         @rmtuser = N'sa',
-        @rmtpassword = N'<CONTRASENA_SA_SITIO_B>';
+        @rmtpassword = N'sa';
 
     EXEC master.dbo.sp_serveroption
         @server = N'LS_SITIO_B',
