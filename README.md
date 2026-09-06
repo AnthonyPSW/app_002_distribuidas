@@ -328,6 +328,21 @@ http://100.99.13.87:5086/api/medicity/distribuida
 | 6 | POST | `/procesos/diagnosticos/crear` | `sp_InsertarDiagnostico` |
 | 7 | PUT | `/procesos/diagnosticos/{id}/actualizar` | `sp_ActualizarDiagnostico` |
 
+### Identificador en los procesos UPDATE
+
+Los dos endpoints de actualización reciben el identificador del registro en
+la URL, mediante `{id}`. No se repite el ID dentro del JSON:
+
+```text
+PUT /api/medicity/distribuida/procesos/citas/1/actualizar
+PUT /api/medicity/distribuida/procesos/diagnosticos/1/actualizar
+```
+
+El controlador envía ese valor como `@ID` al procedimiento almacenado. Tanto
+`sp_ActualizarCitaMedica` como `sp_ActualizarDiagnostico` comprueban primero
+que el registro exista y actualizan únicamente la fila que cumple
+`WHERE ID = @ID`.
+
 Los siete ejemplos completos están en `app_02.http`.
 
 ### Crear doctor
