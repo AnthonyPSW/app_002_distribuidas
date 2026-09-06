@@ -1,81 +1,314 @@
 # app_002_distribuidas
 
-Práctica MEDICITY distribuida entre dos servidores SQL Server comunicados por
-Tailscale. El backend ASP.NET Core se ejecuta como servidor HTTP para que
-Flutter lo consuma mediante la IP Tailscale de la máquina del backend.
+Práctica MEDICITY distribuida entre dos instancias de SQL Server conectadas
+mediante Tailscale. El backend ASP.NET Core se ejecuta en la computadora del
+Sitio A y expone exactamente **7 endpoints** para el futuro cliente Flutter.
 
-## Arquitectura
+## 1. Estado actual verificado
+
+| Componente | Configuración actual |
+|---|---|
+| Backend | `http://100.99.13.87:5086` |
+| Swagger | `http://100.99.13.87:5086/swagger` |
+| Sitio A | `ANTHONY\SITIO_A` |
+| Base del Sitio A | `MEDICITY_A` |
+| Tailscale del Sitio A | `100.99.13.87` |
+| Puerto SQL del Sitio A | `1440` |
+| Sitio B usado en SSMS | `XABI\SITIOB` |
+| Nombre reportado por SQL en Sitio B | `WIN-MOJAG62QD68\SITIOB` |
+| Base del Sitio B | `MEDICITY_B` |
+| Tailscale del Sitio B | `100.87.218.93` |
+| Puerto SQL del Sitio B | `1441` |
+| Enlace desde A | `LS_SITIO_B → 100.87.218.93,1441` |
+| Enlace desde B | `LS_SITIO_A → 100.99.13.87,1440` |
+
+Pruebas realizadas el 6 de septiembre de 2026:
+
+- Los puertos `100.99.13.87:1440` y `100.87.218.93:1441` responden por TCP.
+- Sitio A consulta correctamente las tablas remotas del Sitio B.
+- Sitio B consulta correctamente las tablas remotas del Sitio A.
+- Las tres vistas del backend responden con HTTP `200`.
+- Swagger muestra exactamente 7 operaciones.
+- Datos comprobados sin modificarlos: 2 ciudades, 2 pacientes, 2 citas,
+  2 doctores, 2 especialidades y 1 diagnóstico.
+
+## 2. Arquitectura
 
 ```text
-Flutter
-   |
-   | http://100.99.13.87:5086
-   v
-Backend ASP.NET Core
-   |
-   | SQL local: localhost:1440
-   v
-SITIO_AD_A / MEDICITY_A
-   |
-   | LS_SITIO_B: 100.87.218.93:1441 por Tailscale
-   v
-XABI\SITIOB / MEDICITY_B
+Flutter / Postman / navegador
+              |
+              | HTTP por Tailscale
+              | http://100.99.13.87:5086
+              v
+      Backend ASP.NET Core
+              |
+              | SQL local: localhost,1440
+              v
+   ANTHONY\SITIO_A / MEDICITY_A
+              |
+              | LS_SITIO_B por Tailscale
+              | 100.87.218.93,1441
+              v
+       XABI\SITIOB / MEDICITY_B
 ```
 
-Sitio B también tiene `LS_SITIO_A` para comprobar la conexión inversa. En los
-Linked Servers se usa la IP `100.x.x.x` y un puerto TCP fijo; no se usa
-`localhost` porque cada sitio está en una máquina diferente.
+La conexión inversa también está configurada:
 
-Datos confirmados del Sitio B:
+```text
+XABI\SITIOB / MEDICITY_B
+              |
+              | LS_SITIO_A por Tailscale
+              | 100.99.13.87,1440
+              v
+ANTHONY\SITIO_A / MEDICITY_A
+```
 
-- Servidor SQL: `XABI\SITIOB`.
-- Base de datos: `MEDICITY_B`.
-- IP Tailscale: `100.87.218.93`.
-- Puerto SQL Server: `1441`.
+## 3. Distribución de las tablas
 
-Datos confirmados del Sitio A y backend:
+### Sitio A — `MEDICITY_A`
 
-- Servidor SQL: `ANTHONY\SITIO_A`.
-- Base de datos: `MEDICITY_A`.
-- IP Tailscale: `100.99.13.87`.
-- Puerto SQL Server: `1440`.
-- Puerto del backend: `5086`.
+- `CIUDAD_SA`
+- `PACIENTE_SA`
+- `CITA_MEDICA_SA`
 
-## Scripts SQL y orden de ejecución
+### Sitio B — `MEDICITY_B`
 
-1. En Sitio A, editar y ejecutar `database/01_SITIO_A_LINKED_SERVER.sql`.
-2. En Sitio B, editar y ejecutar `database/02_SITIO_B_LINKED_SERVER.sql`.
-3. En `MEDICITY_A`, ejecutar `database/03_OBJETOS_7_ENDPOINTS.sql`.
+- `ESPECIALIDAD_SB`
+- `DOCTOR_SB`
+- `DIAGNOSTICO_SB`
 
-Antes de ejecutarlos, reemplace las IP, los puertos y las contraseñas marcadas
-entre `< >`. Los scripts no eliminan tablas ni datos.
+Las vistas y procedimientos se crean en `MEDICITY_A`. Cuando necesitan datos
+del Sitio B utilizan nombres de cuatro partes, por ejemplo:
 
-## Alcance exacto de la entrega
+```sql
+[LS_SITIO_B].[MEDICITY_B].[dbo].[DOCTOR_SB]
+```
+
+## 4. Archivos del repositorio
+
+```text
+app_002_distribuidas/
+├── backend/
+│   ├── Controllers/MedicityController.cs
+│   ├── Data/AppDbContext.cs
+│   ├── DTO/
+│   ├── Views/
+│   ├── app_02.csproj
+│   ├── app_02.http
+│   ├── appsettings.json
+│   └── Program.cs
+└── database/
+    ├── 01_SITIO_A_LINKED_SERVER.sql
+    ├── 02_SITIO_B_LINKED_SERVER.sql
+    └── 03_OBJETOS_7_ENDPOINTS.sql
+```
+
+## 5. Valores que se deben cambiar
+
+Esta es la guía rápida cuando se use otra computadora, IP, puerto o
+contraseña.
+
+| Cambio | Archivo | Valor que debe editarse |
+|---|---|---|
+| IP o puerto de Sitio B | `database/01_SITIO_A_LINKED_SERVER.sql` | `@datasrc` |
+| Contraseña de Sitio B | `database/01_SITIO_A_LINKED_SERVER.sql` | `<CONTRASENA_SA_SITIO_B>` |
+| IP o puerto de Sitio A | `database/02_SITIO_B_LINKED_SERVER.sql` | `@datasrc` |
+| Contraseña de Sitio A | `database/02_SITIO_B_LINKED_SERVER.sql` | `<CONTRASENA_SA_SITIO_A>` |
+| Puerto local de SQL A | Variable de entorno del backend | `Server=localhost,PUERTO` |
+| IP o puerto del backend | `backend/app_02.http` | Variable `@host` |
+| Puerto donde escucha la API | `backend/appsettings.json` | Propiedad `Urls` |
+| IP usada por Flutter | Archivo de configuración de Flutter | `baseUrl` |
+
+### Valores actuales de los dos Linked Servers
+
+En Sitio A:
+
+```sql
+@server = N'LS_SITIO_B'
+@datasrc = N'100.87.218.93,1441'
+```
+
+En Sitio B:
+
+```sql
+@server = N'LS_SITIO_A'
+@datasrc = N'100.99.13.87,1440'
+```
+
+No coloque `localhost` en `@datasrc` cuando el destino está en otra máquina.
+`localhost` siempre representa la computadora donde se está ejecutando SQL
+Server.
+
+### Si cambia una IP después de crear el Linked Server
+
+Los scripts no sobrescriben un Linked Server existente. Primero elimine
+solamente su configuración y después vuelva a ejecutar el script correcto.
+Esto no elimina bases, tablas ni registros.
+
+En Sitio A, para recrear `LS_SITIO_B`:
+
+```sql
+USE master;
+GO
+EXEC master.dbo.sp_dropserver
+    @server = N'LS_SITIO_B',
+    @droplogins = 'droplogins';
+GO
+```
+
+Después edite y ejecute `database/01_SITIO_A_LINKED_SERVER.sql`.
+
+En Sitio B, para recrear `LS_SITIO_A`:
+
+```sql
+USE master;
+GO
+EXEC master.dbo.sp_dropserver
+    @server = N'LS_SITIO_A',
+    @droplogins = 'droplogins';
+GO
+```
+
+Después edite y ejecute `database/02_SITIO_B_LINKED_SERVER.sql`.
+
+## 6. Preparar Tailscale y SQL Server
+
+Realice estos pasos en las dos computadoras:
+
+1. Inicie sesión en Tailscale y confirme que ambas máquinas estén conectadas
+   al mismo Tailnet.
+2. En SQL Server Configuration Manager, habilite `TCP/IP` para la instancia.
+3. Configure un puerto TCP fijo: `1440` en Sitio A y `1441` en Sitio B.
+4. Reinicie el servicio de la instancia después de cambiar TCP/IP o el puerto.
+5. Permita el puerto correspondiente en el firewall para la red Tailscale.
+6. Habilite el modo de autenticación de SQL Server y confirme que el usuario
+   remoto pueda iniciar sesión.
+
+Comprobaciones desde la computadora del Sitio A:
+
+```powershell
+Test-NetConnection 100.87.218.93 -Port 1441
+Test-NetConnection 100.99.13.87 -Port 1440
+```
+
+El resultado correcto es:
+
+```text
+TcpTestSucceeded : True
+```
+
+El `ping` puede estar bloqueado por el firewall. Para esta práctica, la prueba
+importante es que el puerto TCP de SQL Server responda.
+
+## 7. Crear los Linked Servers
+
+Orden obligatorio:
+
+1. Abra SSMS conectado a `ANTHONY\SITIO_A`.
+2. Reemplace `<CONTRASENA_SA_SITIO_B>` y ejecute
+   `database/01_SITIO_A_LINKED_SERVER.sql`.
+3. Abra SSMS conectado a `XABI\SITIOB`.
+4. Reemplace `<CONTRASENA_SA_SITIO_A>` y ejecute
+   `database/02_SITIO_B_LINKED_SERVER.sql`.
+
+Prueba desde Sitio A:
+
+```sql
+EXEC master.dbo.sp_testlinkedserver N'LS_SITIO_B';
+
+SELECT * FROM [LS_SITIO_B].[MEDICITY_B].[dbo].[DIAGNOSTICO_SB];
+SELECT * FROM [LS_SITIO_B].[MEDICITY_B].[dbo].[DOCTOR_SB];
+SELECT * FROM [LS_SITIO_B].[MEDICITY_B].[dbo].[ESPECIALIDAD_SB];
+```
+
+Prueba desde Sitio B:
+
+```sql
+EXEC master.dbo.sp_testlinkedserver N'LS_SITIO_A';
+
+SELECT * FROM [LS_SITIO_A].[MEDICITY_A].[dbo].[CIUDAD_SA];
+SELECT * FROM [LS_SITIO_A].[MEDICITY_A].[dbo].[PACIENTE_SA];
+SELECT * FROM [LS_SITIO_A].[MEDICITY_A].[dbo].[CITA_MEDICA_SA];
+```
+
+## 8. Crear las vistas y procedimientos
+
+Conéctese a Sitio A y ejecute:
+
+```text
+database/03_OBJETOS_7_ENDPOINTS.sql
+```
+
+El script utiliza `CREATE OR ALTER`, por lo que puede ejecutarse nuevamente
+para actualizar el código. No elimina tablas ni registros.
 
 ### Tres vistas
 
-1. `consulta_general`: información distribuida completa y diagnósticos.
-2. `vw_DoctorDetalle`: comprueba el CREATE de doctor.
-3. `vw_CitasMedicas`: comprueba el UPDATE de cita.
+| Vista | Función |
+|---|---|
+| `consulta_general` | Une citas, pacientes y ciudades de A con doctores, especialidades y diagnósticos de B |
+| `vw_DoctorDetalle` | Visualiza el resultado de insertar un doctor remoto |
+| `vw_CitasMedicas` | Visualiza el resultado de actualizar una cita |
 
-### Cuatro procedimientos almacenados
+### Dos procesos entregados por el profesor
 
-Entregados por el profesor:
+| Procedimiento | Tipo | Ubicación afectada |
+|---|---|---|
+| `sp_InsertarDoctor` | CREATE | `DOCTOR_SB` en Sitio B |
+| `sp_ActualizarCitaMedica` | UPDATE | `CITA_MEDICA_SA` en Sitio A |
 
-1. `sp_InsertarDoctor` — CREATE remoto en `DOCTOR_SB`.
-2. `sp_ActualizarCitaMedica` — UPDATE en `CITA_MEDICA_SA` validando Sitio B.
+El procedimiento `sp_InsertarDoctor` del material P002 estaba incompleto: le
+faltaba `INSERT INTO DOCTOR_SB`. La versión del repositorio ya está corregida.
 
-Procesos propios:
+### Dos procesos propios
 
-3. `sp_InsertarDiagnostico` — CREATE remoto en `DIAGNOSTICO_SB`.
-4. `sp_ActualizarDiagnostico` — UPDATE remoto en `DIAGNOSTICO_SB`.
+| Procedimiento | Tipo | Ubicación afectada |
+|---|---|---|
+| `sp_InsertarDiagnostico` | CREATE | `DIAGNOSTICO_SB` en Sitio B |
+| `sp_ActualizarDiagnostico` | UPDATE | `DIAGNOSTICO_SB` en Sitio B |
 
-El procedimiento `sp_InsertarDoctor` del adjunto P002 estaba incompleto porque
-faltaba la sentencia `INSERT INTO DOCTOR_SB`; aquí ya está corregido.
+## 9. Configurar y ejecutar el backend
 
-## Los siete endpoints
+Requisitos:
 
-Ruta base:
+- .NET 10 SDK.
+- Sitio A ejecutándose en `localhost,1440`.
+- `LS_SITIO_B` funcionando.
+- Las tres vistas y los cuatro procedimientos creados.
+
+La contraseña no debe subirse a GitHub. Configure la conexión solamente en la
+terminal desde la cual iniciará la API:
+
+```powershell
+cd backend
+$env:ConnectionStrings__testConnection = "Server=localhost,1440;Database=MEDICITY_A;User Id=sa;Password=SU_CONTRASENA;Encrypt=False;TrustServerCertificate=True;"
+dotnet restore
+dotnet run --launch-profile http
+```
+
+La consola debe mostrar:
+
+```text
+Now listening on: http://0.0.0.0:5086
+```
+
+Direcciones de prueba:
+
+- Swagger: `http://100.99.13.87:5086/swagger`
+- Vista general:
+  `http://100.99.13.87:5086/api/medicity/distribuida/vistas/general`
+
+El backend escucha en `0.0.0.0`, por lo que acepta conexiones desde localhost,
+la red local y Tailscale. Si cambia el puerto `5086`, actualice estos archivos:
+
+1. `backend/appsettings.json`.
+2. `backend/Properties/launchSettings.json`.
+3. `backend/app_02.http`.
+4. La constante `baseUrl` de Flutter.
+
+## 10. Los siete endpoints
+
+Ruta base actual:
 
 ```text
 http://100.99.13.87:5086/api/medicity/distribuida
@@ -91,28 +324,158 @@ http://100.99.13.87:5086/api/medicity/distribuida
 | 6 | POST | `/procesos/diagnosticos/crear` | `sp_InsertarDiagnostico` |
 | 7 | PUT | `/procesos/diagnosticos/{id}/actualizar` | `sp_ActualizarDiagnostico` |
 
-Los ejemplos listos para ejecutar están en `backend/app_02.http` y también se
-pueden probar desde Swagger.
+Los siete ejemplos completos están en `backend/app_02.http`.
 
-## Configurar y ejecutar el backend
+### Crear doctor
 
-El backend escucha en todas las interfaces (`0.0.0.0:5086`), incluida
-Tailscale. Como el backend y Sitio A se ejecutan en esta misma computadora, la
-conexión SQL se realiza localmente por el puerto `1440`. Configure la contraseña
-sin guardarla en Git:
+```http
+POST /api/medicity/distribuida/procesos/doctores/crear
+Content-Type: application/json
 
-```powershell
-$env:ConnectionStrings__testConnection = "Server=localhost,1440;Database=MEDICITY_A;User Id=sa;Password=<CONTRASENA>;Encrypt=False;TrustServerCertificate=True;"
-cd backend
-dotnet restore
-dotnet run --launch-profile http
+{
+  "nombre": "LUIS",
+  "idEspecialidad": 1,
+  "idCiudad": 1
+}
 ```
 
-Desde Flutter o desde otra máquina del mismo Tailnet:
+Después compruebe el resultado con `GET /vistas/doctores`.
 
-```text
-http://100.99.13.87:5086/swagger
+### Actualizar cita
+
+```http
+PUT /api/medicity/distribuida/procesos/citas/1/actualizar
+Content-Type: application/json
+
+{
+  "idPaciente": 2,
+  "idDoctor": 2,
+  "fechaHora": "2026-12-09T10:00:00"
+}
 ```
 
-No debe usarse `localhost` en Flutter, porque `localhost` sería el teléfono o
-la computadora donde corre Flutter, no el servidor del backend.
+Después compruebe el resultado con `GET /vistas/citas`.
+
+### Crear diagnóstico
+
+```http
+POST /api/medicity/distribuida/procesos/diagnosticos/crear
+Content-Type: application/json
+
+{
+  "idCita": 2,
+  "nombre": "GRIPE",
+  "descripcion": "PACIENTE PRESENTA SINTOMAS DE GRIPE",
+  "tratamiento": "REPOSO Y MEDICACION"
+}
+```
+
+Después compruebe el resultado con `GET /vistas/general`.
+
+### Actualizar diagnóstico
+
+```http
+PUT /api/medicity/distribuida/procesos/diagnosticos/1/actualizar
+Content-Type: application/json
+
+{
+  "idCita": 1,
+  "nombre": "CONTROL",
+  "descripcion": "PACIENTE EN CONTROL",
+  "tratamiento": "CONTINUAR TRATAMIENTO"
+}
+```
+
+Después compruebe el resultado con `GET /vistas/general`.
+
+## 11. Configuración futura de Flutter
+
+Flutter debe usar la IP Tailscale del servidor del backend, nunca `localhost`:
+
+```dart
+const String baseUrl =
+    'http://100.99.13.87:5086/api/medicity/distribuida';
+```
+
+En Flutter, `localhost` representa el teléfono, emulador o computadora donde
+se ejecuta Flutter. No representa el servidor ASP.NET Core.
+
+Si Android bloquea las solicitudes HTTP durante la práctica, revise que la
+aplicación permita tráfico HTTP de desarrollo en su configuración Android. En
+una entrega de producción se debe usar HTTPS.
+
+## 12. Orden recomendado para la presentación
+
+1. Mostrar Tailscale conectado en las dos computadoras.
+2. Mostrar `MEDICITY_A` con sus tres tablas `_SA`.
+3. Mostrar `MEDICITY_B` con sus tres tablas `_SB`.
+4. Ejecutar las consultas de `LS_SITIO_B` desde Sitio A.
+5. Ejecutar las consultas de `LS_SITIO_A` desde Sitio B.
+6. Mostrar las tres vistas.
+7. Ejecutar `sp_InsertarDoctor` y comprobar `vw_DoctorDetalle`.
+8. Ejecutar `sp_ActualizarCitaMedica` y comprobar `vw_CitasMedicas`.
+9. Ejecutar los dos procedimientos propios y comprobar `consulta_general`.
+10. Abrir Swagger y demostrar los siete endpoints.
+11. Mostrar Flutter consumiendo
+    `http://100.99.13.87:5086/api/medicity/distribuida`.
+
+Use datos de demostración que puedan conservarse. Las pruebas automáticas del
+repositorio utilizan identificadores inexistentes para verificar errores sin
+alterar la información real.
+
+## 13. Problemas frecuentes
+
+### `TcpTestSucceeded : False`
+
+- Confirme que Tailscale esté conectado en las dos máquinas.
+- Revise la IP `100.x.x.x` del destino.
+- Confirme que SQL Server use el puerto fijo configurado.
+- Revise el firewall de la computadora destino.
+- Reinicie el servicio SQL Server después de cambiar TCP/IP.
+
+### `Login failed for user 'sa'`
+
+- Confirme la contraseña.
+- Verifique que `sa` esté habilitado.
+- Verifique que SQL Server permita autenticación de SQL Server.
+- No confunda la contraseña de Sitio A con la de Sitio B.
+
+### `Server 'LS_SITIO_A/LS_SITIO_B' already exists`
+
+Elimine únicamente el Linked Server con `sp_dropserver` como se explica en la
+sección 5 y vuelva a ejecutar su script.
+
+### `Could not find server ... in sys.servers`
+
+El Linked Server no fue creado en esa instancia. Ejecute el script correcto en
+`master` y confirme que está conectado al sitio correspondiente.
+
+### Error del proveedor `SQLNCLI`
+
+El material del profesor utiliza `SQLNCLI`. Si la máquina no tiene ese
+proveedor instalado, instale/configure el proveedor requerido por la materia o
+cambie ambos scripts a un proveedor disponible, como `MSOLEDBSQL`. No mezcle
+proveedores diferentes sin volver a probar las consultas distribuidas.
+
+### La API abre localmente pero no desde otra máquina
+
+- Confirme que la consola indique `http://0.0.0.0:5086`.
+- Pruebe `Test-NetConnection 100.99.13.87 -Port 5086` desde la otra máquina.
+- Revise Tailscale y el firewall del servidor del backend.
+- Confirme que Flutter use `100.99.13.87`, no `localhost`.
+
+### HTTP `500` en las vistas
+
+- Ejecute `database/03_OBJETOS_7_ENDPOINTS.sql` en `MEDICITY_A`.
+- Pruebe `LS_SITIO_B` directamente desde SSMS.
+- Confirme que existan las seis tablas `_SA` y `_SB`.
+- Revise la salida de la consola del backend para ver el error SQL exacto.
+
+## 14. Seguridad de la práctica
+
+- No suba contraseñas reales al repositorio.
+- Los archivos versionados contienen marcadores como `SU_CONTRASENA`.
+- Configure la contraseña del backend mediante una variable de entorno.
+- Restrinja los puertos SQL y del backend a las redes necesarias.
+- El usuario `sa` se conserva por compatibilidad con el material académico; en
+  un sistema real se debe usar un usuario con permisos mínimos.
