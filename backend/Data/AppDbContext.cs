@@ -9,7 +9,6 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<ConsultaGeneral> ConsultaGeneral => Set<ConsultaGeneral>();
     public DbSet<DoctorDetalle> Doctores => Set<DoctorDetalle>();
     public DbSet<CitaMedicaDetalle> Citas => Set<CitaMedicaDetalle>();
-    public DbSet<DiagnosticoDetalle> Diagnosticos => Set<DiagnosticoDetalle>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -56,20 +55,5 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
             entity.Property(x => x.FechaHora).HasColumnName("FECHAHORA");
         });
 
-        modelBuilder.Entity<DiagnosticoDetalle>(entity =>
-        {
-            entity.HasNoKey();
-            entity.ToView("vw_Diagnosticos");
-            entity.Property(x => x.IdDiagnostico).HasColumnName("ID_DIAGNOSTICO");
-            entity.Property(x => x.IdCita).HasColumnName("ID_CITA");
-            entity.Property(x => x.IdPaciente).HasColumnName("ID_PACIENTE");
-            entity.Property(x => x.Paciente).HasColumnName("PACIENTE");
-            entity.Property(x => x.IdDoctor).HasColumnName("ID_DOCTOR");
-            entity.Property(x => x.Doctor).HasColumnName("DOCTOR");
-            entity.Property(x => x.FechaHora).HasColumnName("FECHAHORA");
-            entity.Property(x => x.Diagnostico).HasColumnName("DIAGNOSTICO");
-            entity.Property(x => x.Descripcion).HasColumnName("DESCRIPCION");
-            entity.Property(x => x.Tratamiento).HasColumnName("TRATAMIENTO");
-        });
     }
 }

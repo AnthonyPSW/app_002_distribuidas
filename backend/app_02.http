@@ -1,29 +1,17 @@
-@host = http://localhost:5086
+@host = http://<IP_TAILSCALE_BACKEND>:5086
 @base = {{host}}/api/medicity/distribuida
 
-### Estado y consulta general
-GET {{base}}/health
+### 1. Vista general distribuida
+GET {{base}}/vistas/general
 
-###
-GET {{base}}/resumen
+### 2. Vista de doctores
+GET {{base}}/vistas/doctores
 
-### Catalogos para los formularios Flutter
-GET {{base}}/catalogos/ciudades
+### 3. Vista de citas medicas
+GET {{base}}/vistas/citas
 
-###
-GET {{base}}/catalogos/pacientes
-
-###
-GET {{base}}/catalogos/especialidades
-
-### CRUD de doctores
-GET {{base}}/doctores
-
-###
-GET {{base}}/doctores/1
-
-###
-POST {{base}}/doctores
+### 4. Proceso del profesor: crear doctor
+POST {{base}}/procesos/doctores/crear
 Content-Type: application/json
 
 {
@@ -32,56 +20,18 @@ Content-Type: application/json
   "idCiudad": 1
 }
 
-###
-PUT {{base}}/doctores/1
-Content-Type: application/json
-
-{
-  "nombre": "Doctor Juan",
-  "idEspecialidad": 1,
-  "idCiudad": 1
-}
-
-###
-DELETE {{base}}/doctores/999999
-
-### CRUD de citas
-GET {{base}}/citas
-
-###
-GET {{base}}/citas/1
-
-###
-POST {{base}}/citas
-Content-Type: application/json
-
-{
-  "idPaciente": 1,
-  "idDoctor": 1,
-  "fechaHora": "2026-09-20T10:00:00"
-}
-
-###
-PUT {{base}}/citas/2
+### 5. Proceso del profesor: actualizar cita
+PUT {{base}}/procesos/citas/1/actualizar
 Content-Type: application/json
 
 {
   "idPaciente": 2,
-  "idDoctor": 1,
-  "fechaHora": "2026-09-10T15:06:42.393"
+  "idDoctor": 2,
+  "fechaHora": "2026-12-09T10:00:00"
 }
 
-###
-DELETE {{base}}/citas/999999
-
-### CRUD de diagnosticos
-GET {{base}}/diagnosticos
-
-###
-GET {{base}}/diagnosticos/1
-
-###
-POST {{base}}/diagnosticos
+### 6. Proceso propio: crear diagnostico
+POST {{base}}/procesos/diagnosticos/crear
 Content-Type: application/json
 
 {
@@ -91,16 +41,13 @@ Content-Type: application/json
   "tratamiento": "REPOSO Y MEDICACION"
 }
 
-###
-PUT {{base}}/diagnosticos/1
+### 7. Proceso propio: actualizar diagnostico
+PUT {{base}}/procesos/diagnosticos/1/actualizar
 Content-Type: application/json
 
 {
   "idCita": 1,
-  "nombre": "CITA 1",
-  "descripcion": "PACIENTE JOVEN",
-  "tratamiento": "REPOSO"
+  "nombre": "CONTROL",
+  "descripcion": "PACIENTE EN CONTROL",
+  "tratamiento": "CONTINUAR TRATAMIENTO"
 }
-
-###
-DELETE {{base}}/diagnosticos/999999
