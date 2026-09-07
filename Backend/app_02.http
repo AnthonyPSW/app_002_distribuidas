@@ -81,3 +81,13 @@ GET {{base}}/vistas/especialidades
 
 ### 17. Catalogo de pacientes
 GET {{base}}/vistas/pacientes
+
+### 18. Proceso adicional: crear cita medica
+POST {{base}}/procesos/citas/crear
+Content-Type: application/json
+
+{
+  "idPaciente": 1,
+  "idDoctor": 1,
+  "fechaHora": "2027-01-15T10:00:00"
+}

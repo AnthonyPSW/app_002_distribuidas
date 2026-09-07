@@ -14,6 +14,24 @@
 USE master;
 GO
 
+IF EXISTS
+(
+    SELECT 1
+    FROM sys.servers
+    WHERE name = N'LS_SITIO_A'
+      AND
+      (
+          provider <> N'SQLNCLI'
+          OR data_source <> N'100.99.13.87,1440'
+      )
+)
+BEGIN
+    EXEC master.dbo.sp_dropserver
+        @server = N'LS_SITIO_A',
+        @droplogins = N'droplogins';
+END;
+GO
+
 IF NOT EXISTS (SELECT 1 FROM sys.servers WHERE name = N'LS_SITIO_A')
 BEGIN
     EXEC master.dbo.sp_addlinkedserver

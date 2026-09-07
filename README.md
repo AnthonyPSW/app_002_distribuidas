@@ -87,28 +87,39 @@ del Sitio B utilizan nombres de cuatro partes, por ejemplo:
 
 ## 4. Archivos del repositorio
 
+El repositorio está dividido en las tres capas de la práctica.
+
 ```text
 app_002_distribuidas/
-├── app_02.slnx
-├── app_02.csproj
-├── Program.cs
-├── appsettings.json
-├── app_02.http
-├── Controllers/MedicityController.cs
-├── Data/AppDbContext.cs
-├── DTO/
-├── Views/
-├── Properties/
-└── database/
-    ├── 01_SITIO_A_LINKED_SERVER.sql
-    ├── 02_SITIO_B_LINKED_SERVER.sql
-    ├── 03_OBJETOS_7_ENDPOINTS.sql
-    └── 04_VISTAS_ADICIONALES.sql
+├── README.md
+├── Backend/                  ASP.NET Core
+│   ├── app_02.slnx
+│   ├── app_02.csproj
+│   ├── Program.cs
+│   ├── appsettings.json
+│   ├── app_02.http
+│   ├── Controllers/MedicityController.cs
+│   ├── Data/AppDbContext.cs
+│   ├── DTO/
+│   ├── Views/
+│   └── Properties/
+├── Database/                 Todos los scripts SQL
+│   ├── 01_SITIO_A_LINKED_SERVER.sql
+│   ├── 02_SITIO_B_LINKED_SERVER.sql
+│   ├── 03_OBJETOS_7_ENDPOINTS.sql
+│   ├── 04_VISTAS_ADICIONALES.sql
+│   └── 05_PROCESO_CREAR_CITA.sql
+└── Frontend/                 Cliente Flutter
 ```
 
-Después de clonar el repositorio, abra `app_02.slnx` para cargar directamente
-la solución completa en Visual Studio 2026. No es necesario buscar el proyecto
-dentro de otra subcarpeta.
+| Carpeta | Contenido | Responsable |
+|---|---|---|
+| `Backend/` | API ASP.NET Core con los 7 endpoints de la entrega y los de consulta adicionales | Sitio A |
+| `Database/` | Linked Servers, vistas y procedimientos de los dos sitios | Sitios A y B |
+| `Frontend/` | Cliente Flutter que consume la API | Pendiente |
+
+Después de clonar el repositorio, abra `Backend/app_02.slnx` para cargar la
+solución completa en Visual Studio 2026.
 
 ## 5. Valores que se deben cambiar
 
@@ -117,13 +128,13 @@ contraseña.
 
 | Cambio | Archivo | Valor que debe editarse |
 |---|---|---|
-| IP o puerto de Sitio B | `database/01_SITIO_A_LINKED_SERVER.sql` | `@datasrc` |
-| Contraseña de Sitio B | `database/01_SITIO_A_LINKED_SERVER.sql` | `<CONTRASENA_SA_SITIO_B>` |
-| IP o puerto de Sitio A | `database/02_SITIO_B_LINKED_SERVER.sql` | `@datasrc` |
-| Contraseña de Sitio A | `database/02_SITIO_B_LINKED_SERVER.sql` | `<CONTRASENA_SA_SITIO_A>` |
+| IP o puerto de Sitio B | `Database/01_SITIO_A_LINKED_SERVER.sql` | `@datasrc` |
+| Contraseña de Sitio B | `Database/01_SITIO_A_LINKED_SERVER.sql` | `<CONTRASENA_SA_SITIO_B>` |
+| IP o puerto de Sitio A | `Database/02_SITIO_B_LINKED_SERVER.sql` | `@datasrc` |
+| Contraseña de Sitio A | `Database/02_SITIO_B_LINKED_SERVER.sql` | `<CONTRASENA_SA_SITIO_A>` |
 | Puerto local de SQL A | Variable de entorno del backend | `Server=localhost,PUERTO` |
-| IP o puerto del backend | `app_02.http` | Variable `@host` |
-| Puerto donde escucha la API | `appsettings.json` | Propiedad `Urls` |
+| IP o puerto del backend | `Backend/app_02.http` | Variable `@host` |
+| Puerto donde escucha la API | `Backend/appsettings.json` | Propiedad `Urls` |
 | IP usada por Flutter | Archivo de configuración de Flutter | `baseUrl` |
 
 ### Valores actuales de los dos Linked Servers
@@ -163,7 +174,7 @@ EXEC master.dbo.sp_dropserver
 GO
 ```
 
-Después edite y ejecute `database/01_SITIO_A_LINKED_SERVER.sql`.
+Después edite y ejecute `Database/01_SITIO_A_LINKED_SERVER.sql`.
 
 En Sitio B, para recrear `LS_SITIO_A`:
 
@@ -176,7 +187,7 @@ EXEC master.dbo.sp_dropserver
 GO
 ```
 
-Después edite y ejecute `database/02_SITIO_B_LINKED_SERVER.sql`.
+Después edite y ejecute `Database/02_SITIO_B_LINKED_SERVER.sql`.
 
 ## 6. Preparar Tailscale y SQL Server
 
@@ -213,10 +224,10 @@ Orden obligatorio:
 
 1. Abra SSMS conectado a `ANTHONY\SITIO_A`.
 2. Reemplace `<CONTRASENA_SA_SITIO_B>` y ejecute
-   `database/01_SITIO_A_LINKED_SERVER.sql`.
+   `Database/01_SITIO_A_LINKED_SERVER.sql`.
 3. Abra SSMS conectado a `XABI\SITIOB`.
 4. Reemplace `<CONTRASENA_SA_SITIO_A>` y ejecute
-   `database/02_SITIO_B_LINKED_SERVER.sql`.
+   `Database/02_SITIO_B_LINKED_SERVER.sql`.
 
 Prueba desde Sitio A:
 
@@ -243,7 +254,7 @@ SELECT * FROM [LS_SITIO_A].[MEDICITY_A].[dbo].[CITA_MEDICA_SA];
 Conéctese a Sitio A y ejecute:
 
 ```text
-database/03_OBJETOS_7_ENDPOINTS.sql
+Database/03_OBJETOS_7_ENDPOINTS.sql
 ```
 
 El script utiliza `CREATE OR ALTER`, por lo que puede ejecutarse nuevamente
@@ -274,12 +285,27 @@ faltaba `INSERT INTO DOCTOR_SB`. La versión del repositorio ya está corregida.
 | `sp_InsertarDiagnostico` | CREATE | `DIAGNOSTICO_SB` en Sitio B |
 | `sp_ActualizarDiagnostico` | UPDATE | `DIAGNOSTICO_SB` en Sitio B |
 
+### Proceso adicional para crear citas
+
+Ejecute también en Sitio A:
+
+```text
+Database/05_PROCESO_CREAR_CITA.sql
+```
+
+| Procedimiento | Tipo | Ubicación afectada |
+|---|---|---|
+| `sp_InsertarCitaMedica` | CREATE | `CITA_MEDICA_SA` en Sitio A |
+
+Valida que existan el paciente y el doctor, exige una fecha futura y evita
+registrar al mismo paciente o doctor dos veces en la misma fecha y hora.
+
 ### Cuatro vistas adicionales
 
 Después del script anterior, ejecute también en Sitio A:
 
 ```text
-database/04_VISTAS_ADICIONALES.sql
+Database/04_VISTAS_ADICIONALES.sql
 ```
 
 Crea las vistas que usan los endpoints de consulta adicionales. También usa
@@ -308,7 +334,7 @@ terminal desde la cual iniciará la API:
 ```powershell
 $env:ConnectionStrings__testConnection = "Server=localhost,1440;Database=MEDICITY_A;User Id=sa;Password=SU_CONTRASENA;Encrypt=False;TrustServerCertificate=True;"
 dotnet restore
-dotnet run --project app_02.csproj --launch-profile http
+dotnet run --project Backend/app_02.csproj --launch-profile http
 ```
 
 La consola debe mostrar:
@@ -326,9 +352,9 @@ Direcciones de prueba:
 El backend escucha en `0.0.0.0`, por lo que acepta conexiones desde localhost,
 la red local y Tailscale. Si cambia el puerto `5086`, actualice estos archivos:
 
-1. `appsettings.json`.
-2. `Properties/launchSettings.json`.
-3. `app_02.http`.
+1. `Backend/appsettings.json`.
+2. `Backend/Properties/launchSettings.json`.
+3. `Backend/app_02.http`.
 4. La constante `baseUrl` de Flutter.
 
 ## 10. Los siete endpoints
@@ -356,7 +382,7 @@ su formato de respuesta.
 
 El backend expone además estas consultas de solo lectura. Ninguna inserta,
 actualiza ni elimina información, y todas dependen de
-`database/04_VISTAS_ADICIONALES.sql`.
+`Database/04_VISTAS_ADICIONALES.sql`.
 
 | Método | Ruta | Qué entrega |
 |---|---|---|
@@ -371,6 +397,15 @@ actualiza ni elimina información, y todas dependen de
 Los catálogos entregan los identificadores que necesitan los formularios de
 Flutter. Ciudades y especialidades permiten crear doctores, mientras que
 pacientes permite seleccionar la persona al crear o actualizar una cita.
+
+### Endpoint adicional para crear citas
+
+| Método | Ruta | Objeto SQL |
+|---|---|---|
+| POST | `/procesos/citas/crear` | `sp_InsertarCitaMedica` |
+
+El endpoint devuelve `201 Created`, el ID generado y la dirección para consultar
+la cita mediante `GET /vistas/citas/{id}`.
 
 ### Identificador en los procesos UPDATE
 
@@ -387,7 +422,7 @@ El controlador envía ese valor como `@ID` al procedimiento almacenado. Tanto
 que el registro exista y actualizan únicamente la fila que cumple
 `WHERE ID = @ID`.
 
-Los siete ejemplos completos están en `app_02.http`.
+Los siete ejemplos completos están en `Backend/app_02.http`.
 
 ### Crear doctor
 
@@ -414,6 +449,21 @@ Content-Type: application/json
   "idPaciente": 2,
   "idDoctor": 2,
   "fechaHora": "2026-12-09T10:00:00"
+}
+```
+
+Después compruebe el resultado con `GET /vistas/citas`.
+
+### Crear cita
+
+```http
+POST /api/medicity/distribuida/procesos/citas/crear
+Content-Type: application/json
+
+{
+  "idPaciente": 1,
+  "idDoctor": 1,
+  "fechaHora": "2027-01-15T10:00:00"
 }
 ```
 
@@ -544,8 +594,8 @@ se muestran al usuario:
 
 Lista de comprobación:
 
-- Ejecute `database/03_OBJETOS_7_ENDPOINTS.sql` en `MEDICITY_A`.
-- Ejecute `database/04_VISTAS_ADICIONALES.sql` si falla una consulta adicional.
+- Ejecute `Database/03_OBJETOS_7_ENDPOINTS.sql` en `MEDICITY_A`.
+- Ejecute `Database/04_VISTAS_ADICIONALES.sql` si falla una consulta adicional.
 - Pruebe `LS_SITIO_B` directamente desde SSMS.
 - Confirme que existan las seis tablas `_SA` y `_SB`.
 

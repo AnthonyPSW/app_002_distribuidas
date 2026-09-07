@@ -1,5 +1,6 @@
 using app_02.Data;
 using app_02.DTO;
+using System.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -236,6 +237,58 @@ public sealed class MedicityController(AppDbContext context) : ControllerBase
 
             return StatusCode(StatusCodes.Status201Created,
                 new { mensaje = "Doctor registrado correctamente." });
+        }
+        catch (SqlException ex)
+        {
+            return SqlFailure(ex);
+        }
+    }
+
+    // PROCESO ADICIONAL: CREATE local en CITA_MEDICA_SA.
+    [HttpPost("procesos/citas/crear")]
+    public async Task<IActionResult> CrearCita(
+        CitaCrearDto cita, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var idCreado = new SqlParameter("@ID_CREADO", SqlDbType.Int)
+            {
+                Direction = ParameterDirection.Output
+            };
+
+            var parametros = new object[]
+            {
+                new SqlParameter("@ID_PACIENTE", SqlDbType.Int)
+                {
+                    Value = cita.IdPaciente
+                },
+                new SqlParameter("@ID_DOCTOR", SqlDbType.Int)
+                {
+                    Value = cita.IdDoctor
+                },
+                new SqlParameter("@FECHAHORA", SqlDbType.DateTime2)
+                {
+                    Value = cita.FechaHora
+                },
+                idCreado
+            };
+
+            await _context.Database.ExecuteSqlRawAsync(
+                "EXEC dbo.sp_InsertarCitaMedica " +
+                "@ID_PACIENTE, @ID_DOCTOR, @FECHAHORA, @ID_CREADO OUTPUT",
+                parametros,
+                cancellationToken);
+
+            var id = Convert.ToInt32(idCreado.Value);
+
+            return CreatedAtAction(
+                nameof(GetCitaPorId),
+                new { id },
+                new
+                {
+                    id,
+                    mensaje = "Cita medica registrada correctamente."
+                });
         }
         catch (SqlException ex)
         {
