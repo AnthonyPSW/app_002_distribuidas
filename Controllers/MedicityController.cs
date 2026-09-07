@@ -203,6 +203,24 @@ public sealed class MedicityController(AppDbContext context) : ControllerBase
         }
     }
 
+    // Catalogo completo de pacientes del Sitio A para editar citas.
+    [HttpGet("vistas/pacientes")]
+    public async Task<IActionResult> GetVistaPacientes(
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            return Ok(await _context.Pacientes
+                .AsNoTracking()
+                .OrderBy(x => x.Nombre)
+                .ToListAsync(cancellationToken));
+        }
+        catch (SqlException ex)
+        {
+            return SqlFailure(ex);
+        }
+    }
+
     // PROCESO DEL PROFESOR 1: CREATE distribuido en DOCTOR_SB.
     [HttpPost("procesos/doctores/crear")]
     public async Task<IActionResult> CrearDoctor(

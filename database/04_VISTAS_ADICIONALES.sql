@@ -86,8 +86,22 @@ LEFT JOIN
     ON D.ID_ESPECIALIDAD = E.ID;
 GO
 
+/* VISTA 7: catalogo completo de pacientes del Sitio A para los combos
+   de edicion de citas. */
+CREATE OR ALTER VIEW dbo.vw_Pacientes
+AS
+SELECT
+    P.ID,
+    P.NOMBRE AS PACIENTE,
+    C.NOMBRE AS CIUDAD
+FROM dbo.PACIENTE_SA AS P
+INNER JOIN dbo.CIUDAD_SA AS C
+    ON C.ID = P.ID_CIUDAD;
+GO
+
 /* PRUEBAS DE LAS TRES VISTAS: no modifican datos. */
 SELECT * FROM dbo.vw_DiagnosticoDetalle ORDER BY ID_DIAGNOSTICO;
 SELECT * FROM dbo.vw_Ciudades ORDER BY CIUDAD;
 SELECT * FROM dbo.vw_Especialidades ORDER BY ESPECIALIDAD;
+SELECT * FROM dbo.vw_Pacientes ORDER BY PACIENTE;
 GO

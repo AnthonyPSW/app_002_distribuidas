@@ -14,6 +14,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<DiagnosticoDetalle> Diagnosticos => Set<DiagnosticoDetalle>();
     public DbSet<Ciudad> Ciudades => Set<Ciudad>();
     public DbSet<Especialidad> Especialidades => Set<Especialidad>();
+    public DbSet<Paciente> Pacientes => Set<Paciente>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -101,6 +102,15 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
             entity.Property(x => x.Id).HasColumnName("ID");
             entity.Property(x => x.Nombre).HasColumnName("ESPECIALIDAD");
             entity.Property(x => x.TotalDoctores).HasColumnName("TOTAL_DOCTORES");
+        });
+
+        modelBuilder.Entity<Paciente>(entity =>
+        {
+            entity.HasNoKey();
+            entity.ToView("vw_Pacientes");
+            entity.Property(x => x.Id).HasColumnName("ID");
+            entity.Property(x => x.Nombre).HasColumnName("PACIENTE");
+            entity.Property(x => x.Ciudad).HasColumnName("CIUDAD");
         });
     }
 }
