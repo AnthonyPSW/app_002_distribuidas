@@ -17,6 +17,9 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
             entity.HasNoKey();
             entity.ToView("consulta_general");
             entity.Property(x => x.Num).HasColumnName("NUM");
+            entity.Property(x => x.IdCita).HasColumnName("ID_CITA");
+            entity.Property(x => x.IdDiagnostico).HasColumnName("ID_DIAGNOSTICO");
+            entity.Property(x => x.NombreDiagnostico).HasColumnName("NOMBRE_DIAGNOSTICO");
             entity.Property(x => x.Paciente).HasColumnName("PACIENTE");
             entity.Property(x => x.FechaNacimiento).HasColumnName("FECHA_NACIMIENTO");
             entity.Property(x => x.Direccion).HasColumnName("DIRECCION");
