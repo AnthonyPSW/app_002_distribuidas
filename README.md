@@ -563,12 +563,24 @@ sección 5 y vuelva a ejecutar su script.
 El Linked Server no fue creado en esa instancia. Ejecute el script correcto en
 `master` y confirme que está conectado al sitio correspondiente.
 
-### Error del proveedor `SQLNCLI`
+### Error del proveedor OLE DB
 
-El material del profesor utiliza `SQLNCLI`. Si la máquina no tiene ese
-proveedor instalado, instale/configure el proveedor requerido por la materia o
-cambie ambos scripts a un proveedor disponible, como `MSOLEDBSQL`. No mezcle
-proveedores diferentes sin volver a probar las consultas distribuidas.
+Los dos sitios usan el mismo proveedor, `MSOLEDBSQL`. El material del profesor
+usaba `SQLNCLI`, que ya está descontinuado; mezclar proveedores distintos entre
+los dos sitios obliga a volver a probar todas las consultas distribuidas.
+
+Si SQL Server responde que no encuentra el proveedor, instale
+*Microsoft OLE DB Driver for SQL Server* en esa máquina y vuelva a ejecutar el
+script. Para comprobar qué proveedores están registrados:
+
+```sql
+SELECT provider_name FROM sys.servers WHERE server_id > 0;
+EXEC master.dbo.xp_enum_oledb_providers;
+```
+
+Los scripts `01` y `02` detectan si el Linked Server ya existe con otro
+proveedor o con otra IP: en ese caso lo eliminan y lo vuelven a crear. Eso no
+borra bases, tablas ni registros.
 
 ### La API abre localmente pero no desde otra máquina
 

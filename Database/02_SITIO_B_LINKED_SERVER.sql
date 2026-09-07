@@ -9,6 +9,10 @@
     Reemplace <CONTRASENA_SA_SITIO_A> por la clave real de sa en Sitio A.
 
     No use localhost: Sitio A esta en otra maquina de la red Tailscale.
+
+    Proveedor MSOLEDBSQL, el mismo que usa el script del Sitio A. Si el
+    Linked Server ya existia con otro proveedor, el bloque siguiente lo
+    elimina y lo vuelve a crear. Eso no borra bases, tablas ni registros.
 */
 
 USE master;
@@ -21,7 +25,7 @@ IF EXISTS
     WHERE name = N'LS_SITIO_A'
       AND
       (
-          provider <> N'SQLNCLI'
+          provider <> N'MSOLEDBSQL'
           OR data_source <> N'100.99.13.87,1440'
       )
 )
@@ -37,9 +41,9 @@ BEGIN
     EXEC master.dbo.sp_addlinkedserver
         @server = N'LS_SITIO_A',
         @srvproduct = N'',
-        @provider = N'SQLNCLI',
+        @provider = N'MSOLEDBSQL',
         @datasrc = N'100.99.13.87,1440',
-        @provstr = N'encrypt=yes;trustservercertificate=yes';
+        @provstr = N'Encrypt=Optional;TrustServerCertificate=yes';
 
     EXEC master.dbo.sp_addlinkedsrvlogin
         @rmtsrvname = N'LS_SITIO_A',
