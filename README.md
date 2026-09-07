@@ -8,8 +8,8 @@ Sitio A y expone exactamente **7 endpoints** para el futuro cliente Flutter.
 
 | Componente | Configuración actual |
 |---|---|
-| Backend | `http://100.99.13.87:8088` |
-| Swagger | `http://100.99.13.87:8088/swagger` |
+| Backend | `http://100.99.13.87:5086` |
+| Swagger | `http://100.99.13.87:5086/swagger` |
 | Sitio A | `ANTHONY\SITIO_A` |
 | Base del Sitio A | `MEDICITY_A` |
 | Tailscale del Sitio A | `100.99.13.87` |
@@ -38,7 +38,7 @@ Pruebas realizadas el 6 de septiembre de 2026:
 Flutter / Postman / navegador
               |
               | HTTP por Tailscale
-              | http://100.99.13.87:8088
+              | http://100.99.13.87:5086
               v
       Backend ASP.NET Core
               |
@@ -293,17 +293,17 @@ dotnet run --project app_02.csproj --launch-profile http
 La consola debe mostrar:
 
 ```text
-Now listening on: http://0.0.0.0:8088
+Now listening on: http://0.0.0.0:5086
 ```
 
 Direcciones de prueba:
 
-- Swagger: `http://100.99.13.87:8088/swagger`
+- Swagger: `http://100.99.13.87:5086/swagger`
 - Vista general:
-  `http://100.99.13.87:8088/api/medicity/distribuida/vistas/general`
+  `http://100.99.13.87:5086/api/medicity/distribuida/vistas/general`
 
 El backend escucha en `0.0.0.0`, por lo que acepta conexiones desde localhost,
-la red local y Tailscale. Si cambia el puerto `8088`, actualice estos archivos:
+la red local y Tailscale. Si cambia el puerto `5086`, actualice estos archivos:
 
 1. `appsettings.json`.
 2. `Properties/launchSettings.json`.
@@ -315,7 +315,7 @@ la red local y Tailscale. Si cambia el puerto `8088`, actualice estos archivos:
 Ruta base actual:
 
 ```text
-http://100.99.13.87:8088/api/medicity/distribuida
+http://100.99.13.87:5086/api/medicity/distribuida
 ```
 
 | # | Método | Ruta | Objeto SQL |
@@ -413,7 +413,7 @@ Flutter debe usar la IP Tailscale del servidor del backend, nunca `localhost`:
 
 ```dart
 const String baseUrl =
-    'http://100.99.13.87:8088/api/medicity/distribuida';
+    'http://100.99.13.87:5086/api/medicity/distribuida';
 ```
 
 En Flutter, `localhost` representa el teléfono, emulador o computadora donde
@@ -436,7 +436,7 @@ una entrega de producción se debe usar HTTPS.
 9. Ejecutar los dos procedimientos propios y comprobar `consulta_general`.
 10. Abrir Swagger y demostrar los siete endpoints.
 11. Mostrar Flutter consumiendo
-    `http://100.99.13.87:8088/api/medicity/distribuida`.
+    `http://100.99.13.87:5086/api/medicity/distribuida`.
 
 Use datos de demostración que puedan conservarse. Las pruebas automáticas del
 repositorio utilizan identificadores inexistentes para verificar errores sin
@@ -478,8 +478,8 @@ proveedores diferentes sin volver a probar las consultas distribuidas.
 
 ### La API abre localmente pero no desde otra máquina
 
-- Confirme que la consola indique `http://0.0.0.0:8088`.
-- Pruebe `Test-NetConnection 100.99.13.87 -Port 8088` desde la otra máquina.
+- Confirme que la consola indique `http://0.0.0.0:5086`.
+- Pruebe `Test-NetConnection 100.99.13.87 -Port 5086` desde la otra máquina.
 - Revise Tailscale y el firewall del servidor del backend.
 - Confirme que Flutter use `100.99.13.87`, no `localhost`.
 
