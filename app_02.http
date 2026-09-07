@@ -78,3 +78,6 @@ GET {{base}}/vistas/ciudades
 
 ### 16. Catalogo de especialidades del Sitio B
 GET {{base}}/vistas/especialidades
+
+### 17. Catalogo de pacientes
+GET {{base}}/vistas/pacientes

@@ -99,7 +99,7 @@ INNER JOIN dbo.CIUDAD_SA AS C
     ON C.ID = P.ID_CIUDAD;
 GO
 
-/* PRUEBAS DE LAS TRES VISTAS: no modifican datos. */
+/* PRUEBAS DE LAS CUATRO VISTAS: no modifican datos. */
 SELECT * FROM dbo.vw_DiagnosticoDetalle ORDER BY ID_DIAGNOSTICO;
 SELECT * FROM dbo.vw_Ciudades ORDER BY CIUDAD;
 SELECT * FROM dbo.vw_Especialidades ORDER BY ESPECIALIDAD;

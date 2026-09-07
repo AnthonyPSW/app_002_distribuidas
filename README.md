@@ -274,7 +274,7 @@ faltaba `INSERT INTO DOCTOR_SB`. La versión del repositorio ya está corregida.
 | `sp_InsertarDiagnostico` | CREATE | `DIAGNOSTICO_SB` en Sitio B |
 | `sp_ActualizarDiagnostico` | UPDATE | `DIAGNOSTICO_SB` en Sitio B |
 
-### Tres vistas adicionales
+### Cuatro vistas adicionales
 
 Después del script anterior, ejecute también en Sitio A:
 
@@ -291,6 +291,7 @@ entrega.
 | `vw_DiagnosticoDetalle` | Cada diagnóstico del Sitio B junto a su cita, paciente y ciudad del Sitio A |
 | `vw_Ciudades` | Ciudades del Sitio A con sus pacientes locales y sus doctores remotos |
 | `vw_Especialidades` | Especialidades del Sitio B con la cantidad de doctores de cada una |
+| `vw_Pacientes` | Catálogo de pacientes con su ciudad |
 
 ## 9. Configurar y ejecutar el backend
 
@@ -365,10 +366,11 @@ actualiza ni elimina información, y todas dependen de
 | GET | `/vistas/diagnosticos/{id}` | Un diagnóstico, con `404` controlado |
 | GET | `/vistas/ciudades` | Catálogo de ciudades del Sitio A |
 | GET | `/vistas/especialidades` | Catálogo de especialidades del Sitio B |
+| GET | `/vistas/pacientes` | Catálogo de pacientes con su ciudad |
 
-Los catálogos de ciudades y especialidades entregan los identificadores que
-necesita el formulario de Flutter para crear un doctor, en lugar de escribir
-`idCiudad` e `idEspecialidad` a mano.
+Los catálogos entregan los identificadores que necesitan los formularios de
+Flutter. Ciudades y especialidades permiten crear doctores, mientras que
+pacientes permite seleccionar la persona al crear o actualizar una cita.
 
 ### Identificador en los procesos UPDATE
 
