@@ -528,15 +528,15 @@ proveedores diferentes sin volver a probar las consultas distribuidas.
 ### HTTP `503` en las vistas
 
 Cuando la base o el Linked Server no responden, el backend ya no devuelve un
-`500` vacío: responde `503` con el número de error de SQL Server y una
-sugerencia. Ejemplo real:
+`500` vacío: responde `503` con un mensaje general, el número de error de SQL
+Server y una sugerencia sencilla. Los detalles internos de la distribución no
+se muestran al usuario:
 
 ```json
 {
-  "mensaje": "Login failed for user 'sa'.",
+  "mensaje": "No se pudo completar la operacion. Verifique la conexion con la base de datos.",
   "numeroSql": 18456,
-  "sitio": "Comunicacion SQL distribuida",
-  "sugerencia": "Revise la conexion SQL: contrasena de sa, Tailscale y los puertos 1440 (Sitio A) y 1441 (Sitio B)."
+  "sugerencia": "Verifique la conexion y las credenciales de la base de datos."
 }
 ```
 
@@ -555,4 +555,3 @@ Lista de comprobación:
 - Restrinja los puertos SQL y del backend a las redes necesarias.
 - El usuario `sa` se conserva por compatibilidad con el material académico; en
   un sistema real se debe usar un usuario con permisos mínimos.
-

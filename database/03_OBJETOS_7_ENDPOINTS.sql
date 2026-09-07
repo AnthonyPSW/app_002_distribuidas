@@ -100,7 +100,7 @@ BEGIN
         THROW 50001, 'El nombre del doctor es obligatorio.', 1;
 
     IF NOT EXISTS (SELECT 1 FROM dbo.CIUDAD_SA WHERE ID = @ID_CIUDAD)
-        THROW 50002, 'La ciudad ingresada no existe en Sitio A.', 1;
+        THROW 50002, 'La ciudad ingresada no existe.', 1;
 
     IF NOT EXISTS
     (
@@ -108,14 +108,14 @@ BEGIN
         FROM [LS_SITIO_B].[MEDICITY_B].[dbo].[ESPECIALIDAD_SB]
         WHERE ID = @ID_ESPECIALIDAD
     )
-        THROW 50003, 'La especialidad ingresada no existe en Sitio B.', 1;
+        THROW 50003, 'La especialidad ingresada no existe.', 1;
 
     INSERT INTO [LS_SITIO_B].[MEDICITY_B].[dbo].[DOCTOR_SB]
         (NOMBRE, ID_ESPECIALIDAD, ID_CIUDAD)
     VALUES
         (LTRIM(RTRIM(@NOMBRE)), @ID_ESPECIALIDAD, @ID_CIUDAD);
 
-    SELECT 'Doctor registrado correctamente en Sitio B.' AS MENSAJE;
+    SELECT 'Doctor registrado correctamente.' AS MENSAJE;
 END;
 GO
 
@@ -132,13 +132,13 @@ BEGIN
     SET XACT_ABORT ON;
 
     IF NOT EXISTS (SELECT 1 FROM dbo.CITA_MEDICA_SA WHERE ID = @ID)
-        THROW 50011, 'La cita medica no existe en Sitio A.', 1;
+        THROW 50011, 'La cita medica no existe.', 1;
 
     IF @FECHAHORA < GETDATE()
         THROW 50012, 'La fecha y hora no puede ser anterior a la fecha actual.', 1;
 
     IF NOT EXISTS (SELECT 1 FROM dbo.PACIENTE_SA WHERE ID = @ID_PACIENTE)
-        THROW 50013, 'El paciente ingresado no existe en Sitio A.', 1;
+        THROW 50013, 'El paciente ingresado no existe.', 1;
 
     IF NOT EXISTS
     (
@@ -146,7 +146,7 @@ BEGIN
         FROM [LS_SITIO_B].[MEDICITY_B].[dbo].[DOCTOR_SB]
         WHERE ID = @ID_DOCTOR
     )
-        THROW 50014, 'El doctor ingresado no existe en Sitio B.', 1;
+        THROW 50014, 'El doctor ingresado no existe.', 1;
 
     UPDATE dbo.CITA_MEDICA_SA
     SET ID_PACIENTE = @ID_PACIENTE,
@@ -155,7 +155,7 @@ BEGIN
     WHERE ID = @ID;
 
     SELECT @ID AS ID_ACTUALIZADO,
-           'Cita medica actualizada correctamente en Sitio A.' AS MENSAJE;
+           'Cita medica actualizada correctamente.' AS MENSAJE;
 END;
 GO
 
@@ -171,7 +171,7 @@ BEGIN
     SET XACT_ABORT ON;
 
     IF NOT EXISTS (SELECT 1 FROM dbo.CITA_MEDICA_SA WHERE ID = @ID_CITA)
-        THROW 50021, 'La cita medica no existe en Sitio A.', 1;
+        THROW 50021, 'La cita medica no existe.', 1;
 
     IF NULLIF(LTRIM(RTRIM(@DESCRIPCION)), '') IS NULL
         THROW 50022, 'La descripcion del diagnostico es obligatoria.', 1;
@@ -184,7 +184,7 @@ BEGIN
          LTRIM(RTRIM(@DESCRIPCION)),
          NULLIF(LTRIM(RTRIM(@TRATAMIENTO)), ''));
 
-    SELECT 'Diagnostico registrado correctamente en Sitio B.' AS MENSAJE;
+    SELECT 'Diagnostico registrado correctamente.' AS MENSAJE;
 END;
 GO
 
@@ -206,10 +206,10 @@ BEGIN
         FROM [LS_SITIO_B].[MEDICITY_B].[dbo].[DIAGNOSTICO_SB]
         WHERE ID = @ID
     )
-        THROW 50301, 'El diagnostico no existe en Sitio B.', 1;
+        THROW 50301, 'El diagnostico no existe.', 1;
 
     IF NOT EXISTS (SELECT 1 FROM dbo.CITA_MEDICA_SA WHERE ID = @ID_CITA)
-        THROW 50302, 'La cita medica no existe en Sitio A.', 1;
+        THROW 50302, 'La cita medica no existe.', 1;
 
     IF NULLIF(LTRIM(RTRIM(@DESCRIPCION)), '') IS NULL
         THROW 50303, 'La descripcion del diagnostico es obligatoria.', 1;
@@ -222,7 +222,7 @@ BEGIN
     WHERE ID = @ID;
 
     SELECT @ID AS ID_ACTUALIZADO,
-           'Diagnostico actualizado correctamente en Sitio B.' AS MENSAJE;
+           'Diagnostico actualizado correctamente.' AS MENSAJE;
 END;
 GO
 

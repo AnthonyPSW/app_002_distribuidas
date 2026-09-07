@@ -60,7 +60,7 @@ public sealed class MedicityController(AppDbContext context) : ControllerBase
                 .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
 
             return doctor is null
-                ? NoEncontrado("doctor", id, "Sitio B")
+                ? NoEncontrado("doctor", id)
                 : Ok(doctor);
         }
         catch (SqlException ex)
@@ -99,7 +99,7 @@ public sealed class MedicityController(AppDbContext context) : ControllerBase
                 .FirstOrDefaultAsync(x => x.IdCita == id, cancellationToken);
 
             return cita is null
-                ? NoEncontrado("cita medica", id, "Sitio A")
+                ? NoEncontrado("cita medica", id)
                 : Ok(cita);
         }
         catch (SqlException ex)
@@ -157,7 +157,7 @@ public sealed class MedicityController(AppDbContext context) : ControllerBase
                 .FirstOrDefaultAsync(x => x.IdDiagnostico == id, cancellationToken);
 
             return diagnostico is null
-                ? NoEncontrado("diagnostico", id, "Sitio B")
+                ? NoEncontrado("diagnostico", id)
                 : Ok(diagnostico);
         }
         catch (SqlException ex)
@@ -217,7 +217,7 @@ public sealed class MedicityController(AppDbContext context) : ControllerBase
                     @ID_CIUDAD = {doctor.IdCiudad}", cancellationToken);
 
             return StatusCode(StatusCodes.Status201Created,
-                new { mensaje = "Doctor registrado correctamente en Sitio B." });
+                new { mensaje = "Doctor registrado correctamente." });
         }
         catch (SqlException ex)
         {
@@ -239,7 +239,7 @@ public sealed class MedicityController(AppDbContext context) : ControllerBase
                     @ID_DOCTOR = {cita.IdDoctor},
                     @FECHAHORA = {cita.FechaHora}", cancellationToken);
 
-            return Ok(new { mensaje = "Cita medica actualizada correctamente en Sitio A." });
+            return Ok(new { mensaje = "Cita medica actualizada correctamente." });
         }
         catch (SqlException ex)
         {
@@ -262,7 +262,7 @@ public sealed class MedicityController(AppDbContext context) : ControllerBase
                     @TRATAMIENTO = {diagnostico.Tratamiento}", cancellationToken);
 
             return StatusCode(StatusCodes.Status201Created,
-                new { mensaje = "Diagnostico registrado correctamente en Sitio B." });
+                new { mensaje = "Diagnostico registrado correctamente." });
         }
         catch (SqlException ex)
         {
@@ -286,7 +286,7 @@ public sealed class MedicityController(AppDbContext context) : ControllerBase
                     @DESCRIPCION = {diagnostico.Descripcion},
                     @TRATAMIENTO = {diagnostico.Tratamiento}", cancellationToken);
 
-            return Ok(new { mensaje = "Diagnostico actualizado correctamente en Sitio B." });
+            return Ok(new { mensaje = "Diagnostico actualizado correctamente." });
         }
         catch (SqlException ex)
         {
@@ -294,11 +294,10 @@ public sealed class MedicityController(AppDbContext context) : ControllerBase
         }
     }
 
-    private ObjectResult NoEncontrado(string entidad, int id, string sitio) =>
+    private ObjectResult NoEncontrado(string entidad, int id) =>
         StatusCode(StatusCodes.Status404NotFound, new
         {
             mensaje = $"No existe un registro de {entidad} con ID {id}.",
-            sitio,
             sugerencia = "Consulte primero el listado correspondiente."
         });
 
@@ -319,30 +318,27 @@ public sealed class MedicityController(AppDbContext context) : ControllerBase
 
             // La vista o el procedimiento todavia no existe en MEDICITY_A.
             208 or 2812 => (StatusCodes.Status503ServiceUnavailable,
-                "Ejecute database/03_OBJETOS_7_ENDPOINTS.sql y " +
-                "database/04_VISTAS_ADICIONALES.sql en MEDICITY_A."),
+                "Actualice los objetos de base de datos y vuelva a intentar."),
 
             // El Linked Server no existe o no esta configurado.
             7202 or 7411 or 7415 or 7416 => (StatusCodes.Status503ServiceUnavailable,
-                "Revise LS_SITIO_B con EXEC master.dbo.sp_testlinkedserver N'LS_SITIO_B'."),
+                "Verifique la conexion con la base de datos y vuelva a intentar."),
 
             // Una de las dos instancias no responde, rechaza el login o
             // corta la conexion. El mensaje original indica cual fue.
             53 or -2 or 4060 or 10054 or 11001 or 18456 or 7303 or 7391 or 7399 =>
                 (StatusCodes.Status503ServiceUnavailable,
-                "Revise la conexion SQL: contrasena de sa, Tailscale y los " +
-                "puertos 1440 (Sitio A) y 1441 (Sitio B)."),
+                "Verifique la conexion y las credenciales de la base de datos."),
 
             _ => (StatusCodes.Status400BadRequest, null as string)
         };
 
         return StatusCode(status, new
         {
-            mensaje = exception.Message.Trim(),
+            mensaje = status == StatusCodes.Status503ServiceUnavailable
+                ? "No se pudo completar la operacion. Verifique la conexion con la base de datos."
+                : exception.Message.Trim(),
             numeroSql = exception.Number,
-            sitio = status == StatusCodes.Status503ServiceUnavailable
-                ? "Comunicacion SQL distribuida"
-                : "Sitio A",
             sugerencia
         });
     }

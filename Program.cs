@@ -24,7 +24,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("testConnection")
         ?? throw new InvalidOperationException(
-            "No se encontro la cadena de conexion 'testConnection'.")));
+            "No se encontro la cadena de conexion 'testConnection'."),
+        sqlServerOptions => sqlServerOptions.CommandTimeout(90)));
 
 var app = builder.Build();
 

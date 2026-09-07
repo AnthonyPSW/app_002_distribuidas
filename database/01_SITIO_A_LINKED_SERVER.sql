@@ -14,14 +14,32 @@
 USE master;
 GO
 
+IF EXISTS
+(
+    SELECT 1
+    FROM sys.servers
+    WHERE name = N'LS_SITIO_B'
+      AND
+      (
+          provider <> N'MSOLEDBSQL'
+          OR data_source <> N'100.87.218.93,1441'
+      )
+)
+BEGIN
+    EXEC master.dbo.sp_dropserver
+        @server = N'LS_SITIO_B',
+        @droplogins = N'droplogins';
+END;
+GO
+
 IF NOT EXISTS (SELECT 1 FROM sys.servers WHERE name = N'LS_SITIO_B')
 BEGIN
     EXEC master.dbo.sp_addlinkedserver
         @server = N'LS_SITIO_B',
         @srvproduct = N'',
-        @provider = N'SQLNCLI',
+        @provider = N'MSOLEDBSQL',
         @datasrc = N'100.87.218.93,1441',
-        @provstr = N'encrypt=yes;trustservercertificate=yes';
+        @provstr = N'Encrypt=Optional;TrustServerCertificate=yes';
 
     EXEC master.dbo.sp_addlinkedsrvlogin
         @rmtsrvname = N'LS_SITIO_B',
