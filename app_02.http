@@ -51,3 +51,30 @@ Content-Type: application/json
   "descripcion": "PACIENTE EN CONTROL",
   "tratamiento": "CONTINUAR TRATAMIENTO"
 }
+
+### 8. Un doctor por ID
+GET {{base}}/vistas/doctores/1
+
+### 9. Una cita medica por ID
+GET {{base}}/vistas/citas/1
+
+### 10. Diagnosticos distribuidos
+GET {{base}}/vistas/diagnosticos
+
+### 11. Diagnosticos filtrados por cita
+GET {{base}}/vistas/diagnosticos?idCita=1
+
+### 12. Diagnosticos filtrados por texto libre
+GET {{base}}/vistas/diagnosticos?texto=GRIPE
+
+### 13. Un diagnostico por ID
+GET {{base}}/vistas/diagnosticos/1
+
+### 14. Un diagnostico inexistente: 404 controlado
+GET {{base}}/vistas/diagnosticos/999999
+
+### 15. Catalogo de ciudades del Sitio A
+GET {{base}}/vistas/ciudades
+
+### 16. Catalogo de especialidades del Sitio B
+GET {{base}}/vistas/especialidades

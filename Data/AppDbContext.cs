@@ -10,6 +10,11 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<DoctorDetalle> Doctores => Set<DoctorDetalle>();
     public DbSet<CitaMedicaDetalle> Citas => Set<CitaMedicaDetalle>();
 
+    // Vistas creadas por database/04_VISTAS_ADICIONALES.sql.
+    public DbSet<DiagnosticoDetalle> Diagnosticos => Set<DiagnosticoDetalle>();
+    public DbSet<Ciudad> Ciudades => Set<Ciudad>();
+    public DbSet<Especialidad> Especialidades => Set<Especialidad>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<ConsultaGeneral>(entity =>
@@ -58,5 +63,44 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
             entity.Property(x => x.FechaHora).HasColumnName("FECHAHORA");
         });
 
+        // Vista de diagnosticos con su cita, paciente y ciudad.
+        modelBuilder.Entity<DiagnosticoDetalle>(entity =>
+        {
+            entity.HasNoKey();
+            entity.ToView("vw_DiagnosticoDetalle");
+            entity.Property(x => x.IdDiagnostico).HasColumnName("ID_DIAGNOSTICO");
+            entity.Property(x => x.IdCita).HasColumnName("ID_CITA");
+            entity.Property(x => x.NombreDiagnostico).HasColumnName("NOMBRE_DIAGNOSTICO");
+            entity.Property(x => x.Descripcion).HasColumnName("DESCRIPCION");
+            entity.Property(x => x.Tratamiento).HasColumnName("TRATAMIENTO");
+            entity.Property(x => x.FechaHora).HasColumnName("FECHAHORA");
+            entity.Property(x => x.IdPaciente).HasColumnName("ID_PACIENTE");
+            entity.Property(x => x.Paciente).HasColumnName("PACIENTE");
+            entity.Property(x => x.CiudadPaciente).HasColumnName("CIUDAD_PACIENTE");
+            entity.Property(x => x.IdDoctor).HasColumnName("ID_DOCTOR");
+            entity.Property(x => x.Doctor).HasColumnName("DOCTOR");
+            entity.Property(x => x.Especialidad).HasColumnName("ESPECIALIDAD");
+        });
+
+        // Catalogo de ciudades del Sitio A.
+        modelBuilder.Entity<Ciudad>(entity =>
+        {
+            entity.HasNoKey();
+            entity.ToView("vw_Ciudades");
+            entity.Property(x => x.Id).HasColumnName("ID");
+            entity.Property(x => x.Nombre).HasColumnName("CIUDAD");
+            entity.Property(x => x.TotalPacientes).HasColumnName("TOTAL_PACIENTES");
+            entity.Property(x => x.TotalDoctores).HasColumnName("TOTAL_DOCTORES");
+        });
+
+        // Catalogo de especialidades del Sitio B.
+        modelBuilder.Entity<Especialidad>(entity =>
+        {
+            entity.HasNoKey();
+            entity.ToView("vw_Especialidades");
+            entity.Property(x => x.Id).HasColumnName("ID");
+            entity.Property(x => x.Nombre).HasColumnName("ESPECIALIDAD");
+            entity.Property(x => x.TotalDoctores).HasColumnName("TOTAL_DOCTORES");
+        });
     }
 }

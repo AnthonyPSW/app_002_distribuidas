@@ -28,7 +28,8 @@ Pruebas realizadas el 6 de septiembre de 2026:
 - Sitio A consulta correctamente las tablas remotas del Sitio B.
 - Sitio B consulta correctamente las tablas remotas del Sitio A.
 - Las tres vistas del backend responden con HTTP `200`.
-- Swagger muestra exactamente 7 operaciones.
+- Swagger muestra los 7 endpoints de la entrega y los endpoints de consulta
+  adicionales descritos en la sección 10.
 - Datos comprobados sin modificarlos: 2 ciudades, 2 pacientes, 2 citas,
   2 doctores, 2 especialidades y 1 diagnóstico.
 
@@ -101,7 +102,8 @@ app_002_distribuidas/
 └── database/
     ├── 01_SITIO_A_LINKED_SERVER.sql
     ├── 02_SITIO_B_LINKED_SERVER.sql
-    └── 03_OBJETOS_7_ENDPOINTS.sql
+    ├── 03_OBJETOS_7_ENDPOINTS.sql
+    └── 04_VISTAS_ADICIONALES.sql
 ```
 
 Después de clonar el repositorio, abra `app_02.slnx` para cargar directamente
@@ -272,6 +274,24 @@ faltaba `INSERT INTO DOCTOR_SB`. La versión del repositorio ya está corregida.
 | `sp_InsertarDiagnostico` | CREATE | `DIAGNOSTICO_SB` en Sitio B |
 | `sp_ActualizarDiagnostico` | UPDATE | `DIAGNOSTICO_SB` en Sitio B |
 
+### Tres vistas adicionales
+
+Después del script anterior, ejecute también en Sitio A:
+
+```text
+database/04_VISTAS_ADICIONALES.sql
+```
+
+Crea las vistas que usan los endpoints de consulta adicionales. También usa
+`CREATE OR ALTER` y no toca las tres vistas ni los cuatro procedimientos de la
+entrega.
+
+| Vista | Función |
+|---|---|
+| `vw_DiagnosticoDetalle` | Cada diagnóstico del Sitio B junto a su cita, paciente y ciudad del Sitio A |
+| `vw_Ciudades` | Ciudades del Sitio A con sus pacientes locales y sus doctores remotos |
+| `vw_Especialidades` | Especialidades del Sitio B con la cantidad de doctores de cada una |
+
 ## 9. Configurar y ejecutar el backend
 
 Requisitos:
@@ -327,6 +347,28 @@ http://100.99.13.87:5086/api/medicity/distribuida
 | 5 | PUT | `/procesos/citas/{id}/actualizar` | `sp_ActualizarCitaMedica` |
 | 6 | POST | `/procesos/diagnosticos/crear` | `sp_InsertarDiagnostico` |
 | 7 | PUT | `/procesos/diagnosticos/{id}/actualizar` | `sp_ActualizarDiagnostico` |
+
+Estos siete endpoints son la entrega evaluada y conservan su ruta, su verbo y
+su formato de respuesta.
+
+### Endpoints de consulta adicionales
+
+El backend expone además estas consultas de solo lectura. Ninguna inserta,
+actualiza ni elimina información, y todas dependen de
+`database/04_VISTAS_ADICIONALES.sql`.
+
+| Método | Ruta | Qué entrega |
+|---|---|---|
+| GET | `/vistas/doctores/{id}` | Un doctor, con `404` controlado |
+| GET | `/vistas/citas/{id}` | Una cita médica, con `404` controlado |
+| GET | `/vistas/diagnosticos` | Diagnósticos distribuidos, filtrables por `idCita` y por `texto` |
+| GET | `/vistas/diagnosticos/{id}` | Un diagnóstico, con `404` controlado |
+| GET | `/vistas/ciudades` | Catálogo de ciudades del Sitio A |
+| GET | `/vistas/especialidades` | Catálogo de especialidades del Sitio B |
+
+Los catálogos de ciudades y especialidades entregan los identificadores que
+necesita el formulario de Flutter para crear un doctor, en lugar de escribir
+`idCiudad` e `idEspecialidad` a mano.
 
 ### Identificador en los procesos UPDATE
 
@@ -483,12 +525,27 @@ proveedores diferentes sin volver a probar las consultas distribuidas.
 - Revise Tailscale y el firewall del servidor del backend.
 - Confirme que Flutter use `100.99.13.87`, no `localhost`.
 
-### HTTP `500` en las vistas
+### HTTP `503` en las vistas
+
+Cuando la base o el Linked Server no responden, el backend ya no devuelve un
+`500` vacío: responde `503` con el número de error de SQL Server y una
+sugerencia. Ejemplo real:
+
+```json
+{
+  "mensaje": "Login failed for user 'sa'.",
+  "numeroSql": 18456,
+  "sitio": "Comunicacion SQL distribuida",
+  "sugerencia": "Revise la conexion SQL: contrasena de sa, Tailscale y los puertos 1440 (Sitio A) y 1441 (Sitio B)."
+}
+```
+
+Lista de comprobación:
 
 - Ejecute `database/03_OBJETOS_7_ENDPOINTS.sql` en `MEDICITY_A`.
+- Ejecute `database/04_VISTAS_ADICIONALES.sql` si falla una consulta adicional.
 - Pruebe `LS_SITIO_B` directamente desde SSMS.
 - Confirme que existan las seis tablas `_SA` y `_SB`.
-- Revise la salida de la consola del backend para ver el error SQL exacto.
 
 ## 14. Seguridad de la práctica
 
@@ -498,3 +555,4 @@ proveedores diferentes sin volver a probar las consultas distribuidas.
 - Restrinja los puertos SQL y del backend a las redes necesarias.
 - El usuario `sa` se conserva por compatibilidad con el material académico; en
   un sistema real se debe usar un usuario con permisos mínimos.
+
