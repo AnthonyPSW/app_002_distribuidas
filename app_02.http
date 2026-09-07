@@ -1,4 +1,4 @@
-@host = http://100.99.13.87:5086
+@host = http://100.99.13.87:8088
 @base = {{host}}/api/medicity/distribuida
 
 ### 1. Vista general distribuida

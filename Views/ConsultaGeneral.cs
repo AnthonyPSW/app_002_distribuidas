@@ -3,6 +3,9 @@ namespace app_02.Views;
 public sealed class ConsultaGeneral
 {
     public long Num { get; set; }
+    public int IdCita { get; set; }
+    public int? IdDiagnostico { get; set; }
+    public string? NombreDiagnostico { get; set; }
     public string Paciente { get; set; } = string.Empty;
     public DateTime FechaNacimiento { get; set; }
     public string? Direccion { get; set; }

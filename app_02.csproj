@@ -7,6 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- La copia recibida conserva artefactos generados de una carpeta backend antigua. -->
+    <Compile Remove="backend\**" />
+    <EmbeddedResource Remove="backend\**" />
+    <None Remove="backend\**" />
+
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.11" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.11" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.11" />
